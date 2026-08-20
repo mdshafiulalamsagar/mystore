@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/mdshafiulalamsagar/mystore/backend/database"
+	"github.com/mdshafiulalamsagar/mystore/backend/routes"
 )
 
 // main is the entry point of the application
@@ -20,6 +21,9 @@ func main() {
 
 	// Initialize database connection
 	database.ConnectDB()
+
+	// Register API routes
+	routes.SetupRoutes()
 
 	// Define default HTTP route for health check
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
