@@ -1,0 +1,15 @@
+# Environment variables
+.env
+
+# Binary outputs
+/bin
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Dependency folders & IDEs
+.idea/
+.vscode/
+*.log
