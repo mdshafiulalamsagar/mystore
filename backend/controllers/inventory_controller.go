@@ -71,5 +71,10 @@ func GetInventoryItems(w http.ResponseWriter, r *http.Request) {
 		items = append(items, item)
 	}
 
+	if err := rows.Err(); err != nil {
+		http.Error(w, `{"error": "Error during inventory row iteration"}`, http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(items)
 }

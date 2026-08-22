@@ -77,6 +77,11 @@ func GetTransactions(w http.ResponseWriter, r *http.Request) {
 		transactions = append(transactions, t)
 	}
 
+	if err := rows.Err(); err != nil {
+		http.Error(w, `{"error": "Error during transaction row iteration"}`, http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(transactions)
 }
 
