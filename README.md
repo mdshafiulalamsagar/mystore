@@ -44,6 +44,7 @@ mystore/
 │   ├── go.mod          # Go Module dependencies
 │   └── main.go         # Application Entry Point
 └── frontend/           # Planned React.js / Web Application
+```
 
 ---
 
