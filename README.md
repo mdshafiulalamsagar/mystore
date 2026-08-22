@@ -30,6 +30,7 @@
 
 ## Project Architecture
 
+```text
 mystore/
 ├── backend/
 │   ├── config/         # Environment setup
