@@ -1,5 +1,15 @@
 # myStore — Store & Financial Management System
 
+![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+
 A lightweight, full-stack store management and financial tracking web application built with **Go (Golang)**, **React.js (Vite)**, and **PostgreSQL**. Designed to help small-to-medium business owners effortlessly manage inventory, transactions, orders, and customer dues in real-time.
 
 ---
@@ -19,14 +29,14 @@ A lightweight, full-stack store management and financial tracking web applicatio
 
 ### **Frontend**
 - **Framework:** React.js (Vite)
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS, HTML5, CSS3
 - **Icons:** Lucide React
 - **HTTP Client:** Axios
 - **Deployment:** Vercel
 
 ### **Backend**
 - **Language:** Go (Golang)
-- **Database Driver:** `[github.com/lib/pq](https://github.com/lib/pq)`
+- **Database Driver:** `github.com/lib/pq`
 - **Authentication:** JWT (JSON Web Tokens) & bcrypt hashing
 - **Deployment:** Render
 
