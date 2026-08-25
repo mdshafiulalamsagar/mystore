@@ -1,107 +1,114 @@
-# myStore - Cloud-Based Store Management System API
+# myStore — Store & Financial Management System
 
-[![Go Version](https://img.shields.io/badge/Go-1.20%2B-00ADD8?style=for-the-badge&logo=go&logoColor=white)](https://golang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![JWT Auth](https://img.shields.io/badge/JWT-Protected-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)](https://jwt.io/)
-
-**myStore** is a robust, production-ready, RESTful SaaS Backend API designed for small-to-medium retail businesses and shop owners. It enables shop managers to digitize inventory tracking, income/expense management, pending customer orders, and shop dues in real-time.
+A lightweight, full-stack store management and financial tracking web application built with **Go (Golang)**, **React.js (Vite)**, and **PostgreSQL**. Designed to help small-to-medium business owners effortlessly manage inventory, transactions, orders, and customer dues in real-time.
 
 ---
 
-## Key Features
+## Features
 
-- **Authentication & Security:** Secure Signup & Login with Bcrypt password hashing and JWT token authentication.
-- **Inventory Management:** Product catalog tracking with stock counts, unit prices, and low-stock threshold monitoring.
-- **Financial Tracking:** Real-time logging of Income and Expenses with automated Net Profit calculations.
-- **Task & Order Management:** Order deadline tracking and customer request status management.
-- **Dues Management:** Rent, utility bill, and vendor account balance ledger tracking.
-- **Clean Architecture:** Scalable monorepo layout separating domain models, database abstractions, controllers, and middlewares.
+- **Financial Overview:** Real-time dashboard showing Total Income, Expenses, and Net Profit metrics.
+- **Inventory Management:** Add, track, and update product stocks and prices dynamically.
+- **Transaction Ledger:** Categorized logging for shop income and operational expenses.
+- **Task & Order Tracker:** Manage customer orders and update status efficiently.
+- **Dues Tracker (বাকি হিসাব):** Track customer debts, calculate remaining dues, process partial/full payments, and auto-update status (`Unpaid`, `Partial`, `Paid`).
+- **JWT Authentication:** Secure registration and login flow with protected routes and state management.
 
 ---
 
 ## Tech Stack
 
-- **Backend Language:** Go (Golang)
-- **Database:** PostgreSQL
-- **Security:** JWT (JSON Web Tokens) & Bcrypt
-- **Architecture:** Monorepo Layout (Go HTTP standard library with modular handlers)
+### **Frontend**
+- **Framework:** React.js (Vite)
+- **Styling:** Tailwind CSS
+- **Icons:** Lucide React
+- **HTTP Client:** Axios
+- **Deployment:** Vercel
+
+### **Backend**
+- **Language:** Go (Golang)
+- **Database Driver:** `[github.com/lib/pq](https://github.com/lib/pq)`
+- **Authentication:** JWT (JSON Web Tokens) & bcrypt hashing
+- **Deployment:** Render
+
+### **Database**
+- **Database System:** Cloud PostgreSQL (Neon.tech)
 
 ---
 
-## Project Architecture
+## Project Structure
 
 ```text
 mystore/
 ├── backend/
-│   ├── config/         # Environment setup
-│   ├── controllers/    # API Request Logic (Auth, Inventory, Financials, Tasks, Dues)
-│   ├── database/       # DB Pool initialization & SQL Schema scripts
-│   ├── middleware/     # JWT Authentication Middleware
-│   ├── models/         # Go Structural Data Mappings
-│   ├── routes/         # REST API Endpoint Mappings
-│   ├── utils/          # JWT generation & Bcrypt Hashing utilities
-│   ├── .env            # Environment Variables (Ignored in Git)
-│   ├── go.mod          # Go Module dependencies
-│   └── main.go         # Application Entry Point
-└── frontend/           # Planned React.js / Web Application
+│   ├── config/           # App configurations
+│   ├── controllers/      # API handlers (Auth, Inventory, Dues, etc.)
+│   ├── database/         # Database connection & pooling
+│   ├── middleware/       # JWT Auth & CORS handling
+│   ├── models/           # Data models (Structs)
+│   ├── routes/           # Endpoint definitions
+│   └── main.go           # Application entry point
+│
+└── frontend/
+    ├── src/
+    │   ├── api/          # Axios instance & interceptors
+    │   ├── components/   # Reusable UI components (Sidebar, Protected Routes)
+    │   ├── context/      # React Auth Context
+    │   ├── pages/        # App pages (Dashboard, Inventory, Dues, etc.)
+    │   ├── App.jsx       # Route setups
+    │   └── main.jsx      # React entry point
+    ├── index.html
+    └── vite.config.js
 ```
 
 ---
 
-## Getting Started
+## Getting Started Locally
 
-### Prerequisites
+### **Prerequisites**
+- [Go 1.20+](https://go.dev/dl/) installed
+- [Node.js 18+](https://nodejs.org/) installed
+- PostgreSQL database instance running locally or via Cloud (Neon)
 
-- Go (v1.20 or later)
-- PostgreSQL
+### **1. Backend Setup**
+```bash
+cd backend
 
-### Setup Instructions
+# Install dependencies
+go mod tidy
 
-1. Clone the Repository:
-   git clone https://github.com/mdshafiulalamsagar/mystore.git
-   cd mystore/backend
+# Set environment variables (Optional fallback handles defaults)
+export DATABASE_URL="postgres://user:password@localhost:5432/mystore_db?sslmode=disable"
+export PORT=8080
 
-2. Configure Environment Variables:
-   Create a .env file inside the backend directory:
-   PORT=8080
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=postgres
-   DB_PASSWORD=your_postgres_password
-   DB_NAME=mystore_db
+# Run the server
+go run main.go
+```
+The backend server will run at `http://localhost:8080`.
 
-3. Set Up PostgreSQL Database Schema:
-   sudo -u postgres psql -d mystore_db -f database/schema.sql
+### **2. Frontend Setup**
+```bash
+cd frontend
 
-4. Run the Application:
-   go run main.go
+# Install dependencies
+npm install
 
-The backend server will run on http://localhost:8080.
-
----
-
-## API Endpoints Documentation
-
-| Category | Method | Endpoint | Auth Required | Description |
-| :--- | :--- | :--- | :---: | :--- |
-| **Auth** | `POST` | `/api/signup` | ❌ | Register a new shop owner account |
-| **Auth** | `POST` | `/api/login` | ❌ | Authenticate user & receive JWT token |
-| **Inventory** | `POST` | `/api/inventory/add` | ✅ | Add a new stock item |
-| **Inventory** | `GET` | `/api/inventory/list` | ✅ | List all inventory items |
-| **Financials** | `POST` | `/api/transactions/add` | ✅ | Record income or expense |
-| **Financials** | `GET` | `/api/transactions/list` | ✅ | List all transactions |
-| **Financials** | `GET` | `/api/transactions/summary` | ✅ | Fetch total income, expense & net profit |
-| **Tasks** | `POST` | `/api/tasks/add` | ✅ | Add customer order or shop task |
-| **Tasks** | `GET` | `/api/tasks/list` | ✅ | Fetch all tasks |
-| **Dues** | `POST` | `/api/dues/add` | ✅ | Log shop rent, bills, or vendor dues |
-| **Dues** | `GET` | `/api/dues/list` | ✅ | Fetch all recorded dues |
+# Start Vite dev server
+npm run dev
+```
+The frontend application will run at `http://localhost:5173`.
 
 ---
 
-## Developer & Author
+## Live Deployment Architecture
 
-**Md Shafiul Alam Sagar**
-- GitHub: https://github.com/mdshafiulalamsagar
+| Tier | Provider | Description |
+| :--- | :--- | :--- |
+| **Frontend** | Vercel | Global CDN deployment for ultra-fast React client delivery. |
+| **Backend** | Render | Dockerless Go environment handling API endpoints. |
+| **Database** | Neon.tech | Serverless Cloud PostgreSQL instance. |
 
 ---
-*Built with passion and Go!*
+
+## License
+
+This project is open-source and available under the [MIT License](LICENSE).
