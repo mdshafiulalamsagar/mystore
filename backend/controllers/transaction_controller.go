@@ -3,63 +3,61 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"log"
 
 	"github.com/mdshafiulalamsagar/mystore/backend/database"
 	"github.com/mdshafiulalamsagar/mystore/backend/middleware"
 	"github.com/mdshafiulalamsagar/mystore/backend/models"
 )
 
-// CreateTransaction adds a new income or expense record
 func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	userID := r.Context().Value(middleware.UserIDKey).(int)
 
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		http.Error(w, `{"error": "Unauthorized access"}`, http.StatusUnauthorized)
+	var t models.Transaction
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		http.Error(w, `{"error": "Invalid input"}`, http.StatusBadRequest)
 		return
 	}
 
-	var transaction models.Transaction
-	err := json.NewDecoder(r.Body).Decode(&transaction)
+	query := `INSERT INTO transactions (user_id, type, amount, description) VALUES ($1, $2, $3, $4) RETURNING id`
+	err := database.DB.QueryRow(query, userID, t.Type, t.Amount, t.Description).Scan(&t.ID)
 	if err != nil {
-		http.Error(w, `{"error": "Invalid JSON input"}`, http.StatusBadRequest)
-		return
-	}
-
-	// Validate transaction type
-	if transaction.Type != "INCOME" && transaction.Type != "EXPENSE" {
-		http.Error(w, `{"error": "Type must be either INCOME or EXPENSE"}`, http.StatusBadRequest)
-		return
-	}
-
-	query := `INSERT INTO transactions (user_id, type, amount, category, description) 
-	          VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`
-	err = database.DB.QueryRow(query, userID, transaction.Type, transaction.Amount, transaction.Category, transaction.Description).Scan(&transaction.ID, &transaction.CreatedAt)
-	if err != nil {
+		log.Println("=== ADD TRANSACTION DB ERROR ===", err)
 		http.Error(w, `{"error": "Failed to record transaction"}`, http.StatusInternalServerError)
 		return
 	}
 
-	transaction.UserID = userID
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message":     "Transaction recorded successfully",
-		"transaction": transaction,
-	})
+	t.UserID = userID
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(t)
 }
 
-// GetTransactions retrieves all transactions for the authenticated user
-func GetTransactions(w http.ResponseWriter, r *http.Request) {
+func GetTransactionSummary(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	userID := r.Context().Value(middleware.UserIDKey).(int)
 
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		http.Error(w, `{"error": "Unauthorized access"}`, http.StatusUnauthorized)
+	var summary models.Summary
+	query := `SELECT 
+		COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0),
+		COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0)
+		FROM transactions WHERE user_id = $1`
+
+	err := database.DB.QueryRow(query, userID).Scan(&summary.TotalIncome, &summary.TotalExpense)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to fetch summary"}`, http.StatusInternalServerError)
 		return
 	}
 
-	query := `SELECT id, user_id, type, amount, category, description, created_at 
-	          FROM transactions WHERE user_id = $1 ORDER BY created_at DESC`
-	rows, err := database.DB.Query(query, userID)
+	summary.NetProfit = summary.TotalIncome - summary.TotalExpense
+	json.NewEncoder(w).Encode(summary)
+}
+
+func GetTransactions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+
+	rows, err := database.DB.Query(`SELECT id, user_id, type, amount, COALESCE(description, ''), created_at FROM transactions WHERE user_id = $1 ORDER BY id DESC`, userID)
 	if err != nil {
 		http.Error(w, `{"error": "Failed to fetch transactions"}`, http.StatusInternalServerError)
 		return
@@ -69,47 +67,9 @@ func GetTransactions(w http.ResponseWriter, r *http.Request) {
 	transactions := []models.Transaction{}
 	for rows.Next() {
 		var t models.Transaction
-		err := rows.Scan(&t.ID, &t.UserID, &t.Type, &t.Amount, &t.Category, &t.Description, &t.CreatedAt)
-		if err != nil {
-			http.Error(w, `{"error": "Error scanning transaction row"}`, http.StatusInternalServerError)
-			return
-		}
+		rows.Scan(&t.ID, &t.UserID, &t.Type, &t.Amount, &t.Description, &t.CreatedAt)
 		transactions = append(transactions, t)
 	}
 
-	if err := rows.Err(); err != nil {
-		http.Error(w, `{"error": "Error during transaction row iteration"}`, http.StatusInternalServerError)
-		return
-	}
-
 	json.NewEncoder(w).Encode(transactions)
-}
-
-// GetFinancialSummary calculates total income, total expenses, and net profit
-func GetFinancialSummary(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		http.Error(w, `{"error": "Unauthorized access"}`, http.StatusUnauthorized)
-		return
-	}
-
-	var totalIncome, totalExpense float64
-
-	// Fetch sum of income
-	incomeQuery := `SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 AND type = 'INCOME'`
-	database.DB.QueryRow(incomeQuery, userID).Scan(&totalIncome)
-
-	// Fetch sum of expenses
-	expenseQuery := `SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE user_id = $1 AND type = 'EXPENSE'`
-	database.DB.QueryRow(expenseQuery, userID).Scan(&totalExpense)
-
-	netProfit := totalIncome - totalExpense
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"total_income":  totalIncome,
-		"total_expense": totalExpense,
-		"net_profit":    netProfit,
-	})
 }

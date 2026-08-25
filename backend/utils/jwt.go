@@ -1,17 +1,31 @@
 package utils
 
-import "time"
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"time"
 
-var jwtSecret = []byte("MYSTORE_SECRET_KEY_CHANGE_IN_PRODUCTION")
+	"github.com/golang-jwt/jwt/v5"
+)
 
-// GenerateToken creates a JWT signed token containing user ID
-func GenerateToken(userID int) (string, error) {
-    claims := jwt.MapClaims{
-        "user_id": userID,
-        "exp":     time.Now().Add(time.Hour * 72).Unix(),
-    }
+var jwtKey = []byte("mystore_secret_key_2026")
 
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    return token.SignedString(jwtSecret)
+type Claims struct {
+	UserID int    `json:"user_id"`
+	Email  string `json:"email"`
+	jwt.RegisteredClaims
+}
+
+// GenerateJWT creates a new signed JWT token
+func GenerateJWT(userID int, email string) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		UserID: userID,
+		Email:  email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtKey)
 }

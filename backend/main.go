@@ -1,45 +1,51 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"os"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
 
-	"github.com/joho/godotenv"
-	"github.com/mdshafiulalamsagar/mystore/backend/database"
-	"github.com/mdshafiulalamsagar/mystore/backend/routes"
+    "github.com/mdshafiulalamsagar/mystore/backend/config"
+    "github.com/mdshafiulalamsagar/mystore/backend/database"
+    "github.com/mdshafiulalamsagar/mystore/backend/routes"
 )
 
-// main is the entry point of the application
+// enableCORS middleware allows cross-origin requests from React frontend
+func enableCORS(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+        // Handle preflight OPTIONS request
+        if r.Method == "OPTIONS" {
+            w.WriteHeader(http.StatusOK)
+            return
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+
 func main() {
-	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found, using system environment variables")
-	}
+    config.LoadConfig()
+    database.ConnectDB()
 
-	// Initialize database connection
-	database.ConnectDB()
+    // Register all routes
+    routes.SetupRoutes()
 
-	// Register API routes
-	routes.SetupRoutes()
+    // Dynamic Port detection for Render
+    port := config.Port
+    if port == "" {
+        port = os.Getenv("PORT")
+    }
+    if port == "" {
+        port = "8080"
+    }
 
-	// Define default HTTP route for health check
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Welcome to myStore Backend API!")
-	})
+    fmt.Printf("Server is running on port %s...\n", port)
 
-	// Get port from environment variables or set default
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	fmt.Printf("Server is starting on port :%s\n", port)
-
-	// Start server and handle failure
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
-	}
+    // Wrap default http mux with CORS middleware
+    log.Fatal(http.ListenAndServe(":"+port, enableCORS(http.DefaultServeMux)))
 }

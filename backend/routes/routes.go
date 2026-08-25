@@ -7,26 +7,82 @@ import (
 	"github.com/mdshafiulalamsagar/mystore/backend/middleware"
 )
 
-// SetupRoutes registers all public and protected REST API routes
 func SetupRoutes() {
-	// Public routes
-	http.HandleFunc("/api/signup", controllers.RegisterUser)
-	http.HandleFunc("/api/login", controllers.LoginUser)
+	http.HandleFunc("/signup", controllers.RegisterUser)
+	http.HandleFunc("/login", controllers.LoginUser)
 
-	// Protected Inventory routes
-	http.HandleFunc("/api/inventory/add", middleware.AuthMiddleware(controllers.CreateInventoryItem))
-	http.HandleFunc("/api/inventory/list", middleware.AuthMiddleware(controllers.GetInventoryItems))
+	// Protected Product Routes
+	http.HandleFunc("/products", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			middleware.Authenticate(controllers.CreateProduct)(w, r)
+		} else if r.Method == http.MethodGet {
+			middleware.Authenticate(controllers.GetProducts)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Protected Transaction routes
-	http.HandleFunc("/api/transactions/add", middleware.AuthMiddleware(controllers.CreateTransaction))
-	http.HandleFunc("/api/transactions/list", middleware.AuthMiddleware(controllers.GetTransactions))
-	http.HandleFunc("/api/transactions/summary", middleware.AuthMiddleware(controllers.GetFinancialSummary))
+	http.HandleFunc("/products/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			middleware.Authenticate(controllers.DeleteProduct)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Protected Task routes
-	http.HandleFunc("/api/tasks/add", middleware.AuthMiddleware(controllers.CreateTask))
-	http.HandleFunc("/api/tasks/list", middleware.AuthMiddleware(controllers.GetTasks))
+	http.HandleFunc("/transactions", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			middleware.Authenticate(controllers.CreateTransaction)(w, r)
+		} else if r.Method == http.MethodGet {
+			middleware.Authenticate(controllers.GetTransactions)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
-	// Protected Due routes
-	http.HandleFunc("/api/dues/add", middleware.AuthMiddleware(controllers.CreateDue))
-	http.HandleFunc("/api/dues/list", middleware.AuthMiddleware(controllers.GetDues))
+	http.HandleFunc("/transactions/summary", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			middleware.Authenticate(controllers.GetTransactionSummary)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Protected Order Routes
+	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			middleware.Authenticate(controllers.CreateOrder)(w, r)
+		} else if r.Method == http.MethodGet {
+			middleware.Authenticate(controllers.GetOrders)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/orders/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut || r.Method == http.MethodPatch {
+			middleware.Authenticate(controllers.UpdateOrderStatus)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// Protected Due Routes
+	http.HandleFunc("/dues", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			middleware.Authenticate(controllers.CreateDue)(w, r)
+		} else if r.Method == http.MethodGet {
+			middleware.Authenticate(controllers.GetDues)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/dues/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut || r.Method == http.MethodPatch {
+			middleware.Authenticate(controllers.PayDueAmount)(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 }

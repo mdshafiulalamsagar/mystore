@@ -2,13 +2,13 @@ package models
 
 import "time"
 
-// Due represents shop dues like rent, bills, or vendor balance
 type Due struct {
-	ID        int       `json:"id"`
-	UserID    int       `json:"user_id"`
-	Title     string    `json:"title"`
-	Amount    float64   `json:"amount"`
-	DueDate   string    `json:"due_date"`
-	Status    string    `json:"status"` // UNPAID or PAID
-	CreatedAt time.Time `json:"created_at"`
+	ID           int       `json:"id"`
+	UserID       int       `json:"user_id"`
+	CustomerName string    `json:"customer_name"`
+	Phone        string    `json:"phone"`
+	TotalDue     float64   `json:"total_due"`
+	PaidAmount   float64   `json:"paid_amount"`
+	Status       string    `json:"status"` // "Unpaid", "Partial", "Paid"
+	CreatedAt    time.Time `json:"created_at"`
 }

@@ -2,12 +2,16 @@ package models
 
 import "time"
 
-// User represents the store owner account
 type User struct {
-	ID           int       `json:"id"`
-	Name         string    `json:"name"`
-	ShopName     string    `json:"shop_name"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password,omitempty"`
+	ShopName  string    `json:"shop_name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type LoginInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
