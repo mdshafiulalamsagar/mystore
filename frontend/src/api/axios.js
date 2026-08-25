@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'https://mystore-sx6n.onrender.com',
 });
 
 // Automatically add JWT Bearer token to requests
